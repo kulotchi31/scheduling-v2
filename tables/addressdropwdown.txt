@@ -1,0 +1,212 @@
+$(document).on('change',"#addprovince",function(){
+
+	var prov = $(this).val();
+
+
+
+	$.ajax({
+		url:"{{route('getcities')}}",
+		method:"POST",
+		data:{prov:prov,_token:$('meta[name="csrf-token"]').attr('content')},
+		success:function(data){
+
+
+			console.log(data);
+
+			$('#addcity').empty();
+			$('#addbrgy').empty();
+
+
+			$('#addcity').append('<option ></option>');
+
+
+			for (var i = 0; i<data.length; i++) {
+
+
+				$('#addcity').append('<option value="'+data[i]['citymunDesc']+'">'+data[i]['citymunDesc']+'</option>');
+
+			}
+
+
+
+		}
+
+
+
+
+	})
+
+
+});
+
+
+
+$(document).on('change',"#addcity",function(){
+
+	var city = $(this).val();
+
+
+  var prov = $('#addprovince').val();
+
+
+
+	if(city!='')
+	{
+
+
+
+
+
+
+		$.ajax({
+			url:"{{route('getbrgy')}}",
+			method:"POST",
+			data:{city:city,prov:prov,_token:$('meta[name="csrf-token"]').attr('content')},
+			success:function(data){
+
+
+				console.log(data);
+
+
+				$('#addbrgy').empty();
+
+				for (var i = 0; i<data.length; i++) {
+
+
+					$('#addbrgy').append('<option>'+data[i]['brgyDesc']+'</option>');
+
+				}
+
+
+
+			}
+
+
+
+
+		})
+
+
+	}
+
+
+	else
+	{
+
+
+	 $('#addbrgy').empty();
+
+
+
+ }
+
+
+});
+
+
+
+
+
+
+ public function getCities(Request $request)
+    {
+        try
+        {
+
+            $prov=DB::table('refprovince')
+            ->select('*')
+            ->where('provDesc','=',$request->prov)
+            ->first();
+
+            $cities=DB::table('refcitymun')
+            ->select('*')
+            ->where('provCode','=',$prov->provCode)
+            ->get();
+
+
+            return response()->json($cities);
+
+
+
+
+        }
+
+        catch(\Throwable $e)
+        {
+
+            return $e;
+
+        }
+
+
+
+
+    }
+
+        public function getbrgy(Request $request)
+    {
+        try
+        {
+
+          $prov=DB::table('refprovince')
+          ->select('*')
+          ->where('provDesc','=',$request->prov)
+          ->first();
+
+            $city=DB::table('refcitymun')
+            ->select('*')
+            ->where('citymunDesc','=',$request->city)
+            ->where('provCode','=',$prov->provCode)
+            ->first();
+
+            $brgy=DB::table('refbrgy')
+            ->select('*')
+            ->where('citymunCode','=',$city->citymunCode)
+            ->get();
+
+
+            return response()->json($brgy);
+
+
+
+
+        }
+
+        catch(\Throwable $e)
+        {
+
+            return $e;
+
+        }
+
+
+
+
+    } 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Route::post('/get-cities', [App\Http\Controllers\AddressController::class, 'getCities'])->name('getcities');
+// Get Barangay 
+Route::post('/get-brgy', [App\Http\Controllers\AddressController::class, 'getBrgy'])->name('getbrgy');
+
